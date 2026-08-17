@@ -1,26 +1,136 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F7F6F4;
+  --surface: #FFFFFF;
+
+  --primary: #3D5A80;
+  --primary-dark: #2E4763;
+  --primary-tint: #E4EBF2;
+
+  --text-primary: #201C19;
+  --text-secondary: #3A3530;
+  --text-muted: #746C64;
+  --text-faint: #948B82;
+  --text-faint-2: #A39A90;
+  --text-faint-3: #B3ABA1;
+  --text-faint-4: #C7BFB6;
+
+  --border: rgba(17, 15, 13, 0.06);
+  --border-strong: #E3DDD5;
+  --border-soft: #EFEAE4;
+  --border-faint: #F0ECE7;
+
+  --selection: #F3C6D3;
+
+  --risk-safe-text: #0E7490;
+  --risk-safe-bg: #DFF1F5;
+
+  --risk-caution-text: #B45309;
+  --risk-caution-bg: #FBEEDC;
+
+  --risk-high-text: #6D28D9;
+  --risk-high-bg: #EDE6FB;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-tint: var(--primary-tint);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+  --color-text-faint-2: var(--text-faint-2);
+  --color-text-faint-3: var(--text-faint-3);
+  --color-text-faint-4: var(--text-faint-4);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-border-soft: var(--border-soft);
+  --color-border-faint: var(--border-faint);
+
+  --color-selection: var(--selection);
+
+  --color-risk-safe-text: var(--risk-safe-text);
+  --color-risk-safe-bg: var(--risk-safe-bg);
+  --color-risk-caution-text: var(--risk-caution-text);
+  --color-risk-caution-bg: var(--risk-caution-bg);
+  --color-risk-high-text: var(--risk-high-text);
+  --color-risk-high-bg: var(--risk-high-bg);
+
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-sans);
+  --font-inter: var(--font-inter);
+
+  --animate-float-cards: floatCards 6s ease-in-out infinite;
+  --animate-float-chip1: floatChip1 5s ease-in-out infinite;
+  --animate-float-chip2: floatChip2 6s ease-in-out infinite;
+  --animate-float-chip3: floatChip3 5.5s ease-in-out infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+.button {
+  @apply bg-primary text-white font-inter font-semibold p-2 rounded-lg hover:bg-primary-dark transition-colors duration-300 h-fit w-fit;
+}
+
+@keyframes floatCards {
+
+  0%,
+  100% {
+    transform: rotateX(18deg) rotateY(-22deg) translateY(0px);
+  }
+
+  50% {
+    transform: rotateX(18deg) rotateY(-22deg) translateY(-14px);
+  }
+}
+
+@keyframes floatChip1 {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes floatChip2 {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(12px);
+  }
+}
+
+@keyframes floatChip3 {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
   }
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text-primary);
+  font-family: var(--font-inter);
+}
+
+::selection {
+  background: var(--selection);
 }
