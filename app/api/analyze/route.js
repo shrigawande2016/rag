@@ -7,6 +7,44 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const SEVERITY_WEIGHTS = { high: 30, medium: 15, low: 5 };
 
+const OBLIGATION_TYPES = new Set(["renewal", "expiry", "deadline", "review", "other"]);
+
+const isValidDate = (value) => {
+    if (!value) return false;
+    const date = new Date(value);
+    return !Number.isNaN(date.getTime());
+};
+
+function sanitizeObligations(obligations) {
+    return (obligations || [])
+        .filter((ob) => isValidDate(ob.date))
+        .map((ob) => ({
+            ...ob,
+            type: OBLIGATION_TYPES.has(ob.type) ? ob.type : "other",
+        }));
+}
+
+function sanitizePayments(payments) {
+    return (payments || []).map((p) => ({
+        ...p,
+        dueDate: isValidDate(p.dueDate) ? p.dueDate : null,
+    }));
+}
+
+// blank legal templates fill in names/dates/amounts with placeholders like
+// "....", "___", "20___" instead of real values — detect a high density of
+// these before spending an LLM call analyzing a document with nothing real in it.
+const PLACEHOLDER_PATTERN = /_{3,}|\.{4,}/g;
+
+function isBlankTemplate(text) {
+    const matches = text.match(PLACEHOLDER_PATTERN) || [];
+    const wordCount = text.split(/\s+/).filter(Boolean).length;
+    if (wordCount === 0) return false;
+    // a real document might have a handful of blanks (signature lines, etc.);
+    // a genuinely blank template has these packed densely throughout.
+    return matches.length >= 15 || matches.length / wordCount > 0.02;
+}
+
 function calculateRiskScore(flaggedClauses) {
     const breakdown = { financial: 0, legal: 0, missingProtections: 0 };
 
@@ -38,6 +76,15 @@ export async function POST(req) {
 
         if (!doc || !doc.fullText) {
             return NextResponse.json({ error: "Document text not found" }, { status: 404 });
+        }
+
+        if (isBlankTemplate(doc.fullText)) {
+            doc.status = "failed";
+            await doc.save();
+            return NextResponse.json(
+                { error: "This looks like a blank template, not a filled-out document. Please add a valid document." },
+                { status: 422 }
+            );
         }
 
         const SYSTEM_PROMPT = `You are analyzing a business document (contract, invoice, or lease). Extract information carefully and return ONLY valid JSON in exactly this shape:
@@ -100,7 +147,8 @@ exact original wording so the user can verify it themselves.
 
 Rules:
 - If a category has nothing found, return an empty array for it — never omit the field.
-- Only extract dates and amounts that are explicitly stated in the document. Do not guess or infer.
+- Only extract dates and amounts that are explicitly stated in the document as real, complete values. Some documents (e.g. blank legal templates) use placeholder text instead of real dates/amounts, such as "....", "20___", or blank underscores — if a date or amount is a placeholder rather than a real value, DO NOT invent a fake date like "YYYY-MM-DD" or "20___-MM-DD" to fill it in. Instead, omit that entire obligation/payment entry from the array entirely.
+- Every "type" value in obligations must be exactly one of: "renewal", "expiry", "deadline", "review", "other" — never invent a new type value.
 - The "quote" field must be copied verbatim from the document text — do not paraphrase or summarize it.
 - Keep quotes reasonably short (1-3 sentences) — pull the specific clause, not surrounding paragraphs.
 - flaggedClauses should cover real risks: one-sided terms, missing protections, unusual liability, auto-renewals without opt-out, etc.
@@ -134,8 +182,8 @@ Rules:
 
         doc.summary = analysis.summary;
         doc.flaggedClauses = analysis.flaggedClauses || [];
-        doc.obligations = analysis.obligations || [];
-        doc.payments = analysis.payments || [];
+        doc.obligations = sanitizeObligations(analysis.obligations);
+        doc.payments = sanitizePayments(analysis.payments);
         doc.riskScore = overall;
         doc.riskBreakdown = breakdown;
         if (analysis.fileType) {
