@@ -9,6 +9,7 @@ import Upload from '@/Component/Common/Upload';
 const NAV_ITEMS = [
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Documents', href: '/documents' },
+    { label: 'To-do', href: '/todos' },
     { label: 'Settings', href: '/settings' },
 ];
 

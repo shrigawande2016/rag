@@ -4,6 +4,7 @@ import Document from '@/models/document'
 import ReanalyzeButton from '@/Component/Common/ReanalyzeButton'
 import RiskScoreCard from '@/Component/Common/RiskScoreCard'
 import DocumentChat from '@/Component/Common/DocumentChat'
+import AddToTodoButton from '@/Component/Common/AddToTodoButton'
 import React from 'react'
 
 const FILE_TYPE_LABELS = {
@@ -140,9 +141,16 @@ const page = async ({ params }) => {
                       <span className="text-[13.5px] font-mono font-semibold text-text-primary flex-none">{formatDate(item.date)}</span>
                       <span className="text-[13.5px] text-text-secondary truncate">{item.title}</span>
                     </div>
-                    <span className="text-[12px] font-semibold text-primary bg-primary-tint px-2.5 py-1 rounded-full flex-none">
-                      {daysUntilLabel(item.date)}
-                    </span>
+                    <div className="flex items-center gap-2 flex-none">
+                      <span className="text-[12px] font-semibold text-primary bg-primary-tint px-2.5 py-1 rounded-full">
+                        {daysUntilLabel(item.date)}
+                      </span>
+                      <AddToTodoButton
+                        title={item.title}
+                        dueDate={item.date}
+                        documentId={doc._id.toString()}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -201,11 +209,18 @@ const page = async ({ params }) => {
                         <div className="text-[12.5px] text-text-faint">{formatDate(ob.date)}</div>
                       )}
                     </div>
-                    {ob.type && (
-                      <span className="text-[11px] font-semibold text-text-secondary bg-background px-2.5 py-1 rounded-full flex-none">
-                        {OBLIGATION_TYPE_LABELS[ob.type] || ob.type}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2 flex-none">
+                      {ob.type && (
+                        <span className="text-[11px] font-semibold text-text-secondary bg-background px-2.5 py-1 rounded-full flex-none">
+                          {OBLIGATION_TYPE_LABELS[ob.type] || ob.type}
+                        </span>
+                      )}
+                      <AddToTodoButton
+                        title={ob.title}
+                        dueDate={ob.date}
+                        documentId={doc._id.toString()}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -243,11 +258,20 @@ const page = async ({ params }) => {
                             )}
                           </div>
                         </div>
-                        {formatAmount(p.amount) !== null && (
-                          <span className="text-[14px] font-bold text-text-primary flex-none whitespace-nowrap">
-                            {p.currency ? `${p.currency} ` : ''}{formatAmount(p.amount)}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2 flex-none">
+                          {formatAmount(p.amount) !== null && (
+                            <span className="text-[14px] font-bold text-text-primary whitespace-nowrap">
+                              {p.currency ? `${p.currency} ` : ''}{formatAmount(p.amount)}
+                            </span>
+                          )}
+                          <AddToTodoButton
+                            title={`Pay: ${p.description}`}
+                            dueDate={p.dueDate}
+                            amount={p.amount}
+                            currency={p.currency}
+                            documentId={doc._id.toString()}
+                          />
+                        </div>
                       </div>
 
                       {details.length > 0 && (
